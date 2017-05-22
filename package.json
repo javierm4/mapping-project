@@ -1,0 +1,20 @@
+{
+  "name": "mapping-project",
+  "version": "1.0.0",
+  "description": "Final project that include a videomapping.",
+  "scripts": {
+    "start": "grunt serve"
+  },
+  "engines": {
+    "node": "~4.1.1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-connect": "^1.0.2",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "load-grunt-tasks": "^3.5.2",
+    "time-grunt": "^1.4.0"
+  }
+}

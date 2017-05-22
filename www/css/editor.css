@@ -1,0 +1,32 @@
+body {
+  margin: 0px;
+  overflow: hidden;
+}
+
+#editor-view {
+  width: 60%;
+  height: 100%;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+}
+
+#stage-view {
+  width: 40%;
+  height: 100%;
+
+  background-color: #555;
+
+  position: absolute;
+  top: 0;
+  left: 60%;
+  bottom: 0;
+}
+
+.container > canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
