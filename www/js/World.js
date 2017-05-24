@@ -1,6 +1,9 @@
 (function (global) {
   'use strict';
 
+  var PI = Math.PI;
+  var HALF_PI = PI * 0.5;
+
   var WorldView = function (config, near, far) {
     this.side     = config.side;
     this.width    = config.width;
@@ -62,19 +65,18 @@
 
   World.prototype.fixPlacement = function () {
 
-    function radToDeg (r) {
-      return r * (180.0 / Math.PI);
-    }
+    var background = this.views.background;
+    var left       = this.views.left;
+    var right      = this.views.right;
 
     // Find rotation and position
-    var adjacent = this.front - this.views.background.width;
-    var alpha    = Math.acos(adjacent / this.views.left.width);
-    var beta     = Math.PI - (alpha + (Math.PI * 0.5));
+    var adjacent = (this.front - background.width) * 0.5;
+    var alpha    = Math.acos(adjacent / left.width);
 
-    this.distFromBack = Math.sin(alpha) * this.views.left.width;
+    this.distanceBack = Math.sin(alpha) * this.views.left.width;
 
-    this.views.left.rotation  = beta;
-    this.views.right.rotation = -beta;
+    this.views.left.rotation  = (PI + alpha);
+    this.views.right.rotation = -(PI + alpha);
 
     var fudge = 0.069;
     this.views.background.fov = radToDeg(alpha) - radToDeg(fudge);
@@ -94,6 +96,10 @@
       view.renderer.render(this.scene, view.camera);
     }
   };
+
+  function radToDeg (r) {
+    return r * (180.0 / Math.PI);
+  }
 
   global.World = World;
 })(window);
