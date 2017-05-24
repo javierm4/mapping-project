@@ -1,94 +1,96 @@
 (function (global) {
   'use strict';
 
-  function setup (config) {
+  var WorldView = function (config, near, far) {
+    this.side     = config.side;
+    this.width    = config.width;
+    this.height   = config.height;
+    this.aspect   = config.width / config.height;
+    this.rotation = 0.0;
+    this.fov      = 20;
+
+    this.camera = new THREE.PerspectiveCamera(this.fov, this.aspect, near, far);
+    this.helper = new THREE.CameraHelper(this.camera);
+
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.setClearColor(0xffffff);
+    this.renderer.setSize(this.width, this.height);
+  };
+
+  WorldView.prototype.update = function () {
+    this.camera.rotation.y = this.rotation;
+    this.camera.fov = this.fov;
+
+    this.camera.updateProjectionMatrix();
+    this.helper.update();
+  };
+
+  var World = function (config, debug) {
+    this.debug = debug;
+
     this.scene = new THREE.Scene();
 
     this.cameraZ = config.cameraZ;
-    this.near    = config.near;
-    this.far     = config.far;
+    this.front   = config.front;
 
     // Think of the virtual camera as a post with 5 cameras on it (even though those cameras happen to live in difference scenes)
-		// You need to move the post (ie, the virtualCamera) to move all 5 cameras together.
+    // You need to move the post (ie, the virtualCamera) to move all 5 cameras together.
     this.virtualCamera = new THREE.Camera();
     this.virtualCamera.position.z = this.cameraZ;
     this.scene.add(this.virtualCamera);
 
-    this.views = [];
+    // Views
+    this.views = {};
+
+    var near = config.near;
+    var far  = config.far;
+
     for (var i = 0; i < config.views.length; i++) {
       var configView = config.views[i];
-      var view = createView.call(this, configView);
+      var view = new WorldView(configView, near, far);
 
+      this.views[view.side] = view;
       this.virtualCamera.add(view.camera);
-      this.views.push(view);
+
+      if (this.debug) {
+        this.scene.add(view.helper);
+      }
     }
-  }
 
-  function createView (config, fov, near, far) {
-    var view = {};
+    this.fixPlacement();
+  };
 
-    view.width    = config.width;
-    view.height   = config.height;
-    view.aspect   = config.width / config.height;
-    view.rotation = config.rotation;
-    view.position = config.position;
-    view.fov      = config.fov;
+  World.prototype.fixPlacement = function () {
 
-    view.camera = new THREE.PerspectiveCamera(view.fov, view.aspect, this.near, this.far);
-    view.camera.rotation.set(
-      view.rotation.x,
-      view.rotation.y,
-      view.rotation.z
-    );
+    function radToDeg (r) {
+      return r * (180.0 / Math.PI);
+    }
 
-    view.renderer = new THREE.WebGLRenderer({ antialias: true });
-    view.renderer.setClearColor(0xffffff);
-    view.renderer.setSize(view.width, view.height);
+    // Find rotation and position
+    var adjacent = this.front - this.views.background.width;
+    var alpha    = Math.acos(adjacent / this.views.left.width);
+    var beta     = Math.PI - (alpha + (Math.PI * 0.5));
 
-    return view;
-  }
+    this.distFromBack = Math.sin(alpha) * this.views.left.width;
 
-  function degToRad (d) {
-    return d * (Math.PI / 180);
-  }
+    this.views.left.rotation  = beta;
+    this.views.right.rotation = -beta;
 
-  var World = function () {
-    var config = {
-      cameraZ : 100,
-      near    : 5,
-      far     : 200,
-      views   : [
-        {
-          width     : 680,
-          height    : 400,
-          fov       : 80,
-          position  : { x : 0, y : 0, z     : -3 },
-          //rotation  : { x : 0, y : 1.047, z : 0 }
-          rotation  : { x : 0, y : degToRad(80), z : 0 }
-        },
-        {
-          width     : 200,
-          height    : 400,
-          fov       : 80,
-          position  : { x : 0, y : 0, z : -3 },
-          rotation  : { x : 0, y : 0, z : 0 }
-        },
-        {
-          width     : 680,
-          height    : 400,
-          fov       : 80,
-          position  : { x : 0, y : 0, z     : -3 },
-          rotation  : { x : 0, y : -degToRad(80), z : 0 }
-        }
-      ]
-    };
+    var fudge = 0.069;
+    this.views.background.fov = radToDeg(alpha) - radToDeg(fudge);
+    this.views.left.fov = radToDeg(alpha) - radToDeg(fudge);
+    this.views.right.fov = radToDeg(alpha) - radToDeg(fudge);
 
-    setup.call(this, config);
+    this.views.background.update();
+    this.views.left.update();
+    this.views.right.update();
   };
 
   World.prototype.render = function () {
-    for (var i = 0; i < this.views.length; i++) {
-      var view = this.views[i];
+    var keys = Object.keys(this.views);
+
+    for (var i = 0; i < keys.length; i++) {
+      var view = this.views[keys[i]];
       view.renderer.render(this.scene, view.camera);
     }
   };

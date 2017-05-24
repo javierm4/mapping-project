@@ -3,7 +3,7 @@ body {
   overflow: hidden;
 }
 
-#editor-view {
+#preview-view {
   width: 60%;
   height: 100%;
 

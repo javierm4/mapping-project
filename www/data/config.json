@@ -1,0 +1,23 @@
+{
+  "cameraZ" : 100,
+  "near"    : 5,
+  "far"     : 200,
+  "front"   : 660,
+  "views"   : [
+    {
+      "side"    : "left",
+       "width"  : 680,
+      "height"  : 400
+    },
+    {
+      "side"    : "background",
+       "width"  : 190,
+      "height"  : 400
+    },
+    {
+      "side"    : "right",
+       "width"  : 680,
+      "height"  : 400
+    }
+  ]
+}
