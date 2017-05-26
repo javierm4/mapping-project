@@ -12,7 +12,7 @@
     var aspect = container.clientWidth / container.clientHeight;
 
     // Camera
-    this.camera = new THREE.PerspectiveCamera(65, aspect, 1, 20000);
+    this.camera = new THREE.PerspectiveCamera(50, aspect, 1, 20000);
     this.camera.position.set(0, 0, world.cameraZ + 1);
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
@@ -51,7 +51,7 @@
    * STAGE PROTOTYPE *
    *********************/
 
-  var STAGE_SCALE = 0.01;
+  var STAGE_SCALE = 0.02;
   var Stage = function (world) {
     this.world = world;
 
@@ -61,8 +61,8 @@
     this.scene = new THREE.Scene();
 
     // Camera
-    this.camera = new THREE.PerspectiveCamera(20, aspect, 1, 1000);
-    this.camera.position.set(0, 4, 25);
+    this.camera = new THREE.PerspectiveCamera(50, aspect, 1, 1000);
+    this.camera.position.set(0, 1, 15);
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     // Controls
@@ -92,21 +92,22 @@
       var key = keys[i];
       var view = this.world[key];
 
-      console.log(view);
       this.addPlaneToView(view, this.world);
       this.stagePlanes.add(view.plane);
     }
 
+    this.stagePlanes.position.y = this.world.height * STAGE_SCALE * 0.5;
     this.scene.add(this.stagePlanes);
   };
 
-  Stage.prototype.addPlaneToView = function (view, world) {
+  Stage.prototype.addPlaneToView = function (view) {
     var geometry = new THREE.PlaneGeometry(view.width * STAGE_SCALE, view.height * STAGE_SCALE);
-    var material = new THREE.MeshBasicMaterial();
-    material.map = new THREE.Texture(view.renderer.domElement);
-    material.map.needsUpdate = true;
 
-    view.plane = new THREE.Mesh(geometry, material);
+    view.material = new THREE.MeshBasicMaterial();
+    view.material.map = new THREE.Texture(view.renderer.domElement);
+    view.material.map.needsUpdate = true;
+
+    view.plane = new THREE.Mesh(geometry, view.material);
     view.plane.position.set(
       view.origin.x * STAGE_SCALE,
       view.origin.y * STAGE_SCALE,
@@ -114,9 +115,9 @@
     );
 
     view.plane.rotation.set(
-      view.rotation.x,
-      view.rotation.y,
-      view.rotation.z
+      view.planeRotation.x,
+      view.planeRotation.y,
+      view.planeRotation.z
     );
   };
 
@@ -129,9 +130,17 @@
    ***************/
 
    var world;
+   var app;
 
    var hasStage;
    var preview, stage;
+
+   function toggleHelpers() {
+     preview.toggleHelpers();
+     world.backView.helper.visible = !world.backView.helper.visible;
+     world.leftView.helper.visible = !world.leftView.helper.visible;
+     world.rightView.helper.visible = !world.rightView.helper.visible;
+   }
 
    function createWorld (onCreate) {
      $.ajax({
@@ -145,13 +154,12 @@
      });
    }
 
-   function update () {
-   }
-
    function animate () {
-     update();
+     app.update();
 
+     toggleHelpers();
      world.render();
+     toggleHelpers();
 
      preview.render();
      preview.controls.update();
@@ -173,6 +181,9 @@
        if (hasStage) {
          stage = new Stage(world);
        }
+
+       app = new MappingApp(world);
+       app.setup();
 
        animate();
      });

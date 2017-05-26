@@ -30,8 +30,10 @@
     this.aspect = this.width / this.height;
 
     this.rotation = new THREE.Vector3(0, 0, 0);
-    this.position = new THREE.Vector3(0, 0, 0);
     this.origin   = new THREE.Vector3(0, 0, 0);
+    this.position = new THREE.Vector3(0, 0, 0);
+
+    this.planeRotation = new THREE.Vector3(0, 0, 0);
 
     this.camera = new THREE.PerspectiveCamera(50.0, this.aspect, near, far);
     this.cameraGroup = new THREE.Object3D();
@@ -53,11 +55,7 @@
 
     this.camera.fov = radToDeg(this.fovV);
     this.camera.rotation.set(this.rotation.x, this.rotation.y, this.rotation.z);
-    this.cameraGroup.position.set(
-      this.position.x * scale,
-      this.position.y * scale,
-      this.position.z * scale
-    );
+    this.camera.position.set(this.position.x, this.position.y, this.position.z);
 
     this.camera.updateProjectionMatrix();
     this.helper.update();
@@ -68,12 +66,15 @@
    *******************/
 
   var World = function (config, debug) {
-    this.debug = debug;
-
+    this.debug   = debug;
+    this.front   = config.front;
     this.cameraZ = config.cameraZ;
+    this.near    = config.near;
+    this.far     = config.far;
+    this.height  = config.height;
+    this.adjustZ = config.adjustZ;
 
     this.scene = new THREE.Scene();
-    this.front = config.front;
 
     // Think of the virtual camera as a post with 5 cameras on it (even though those cameras happen to live in difference scenes)
     // You need to move the post (ie, the virtualCamera) to move all 5 cameras together.
@@ -82,10 +83,6 @@
     this.scene.add(this.virtualCamera);
 
     // Views
-    this.near   = config.near;
-    this.far    = config.far;
-    this.height = config.height;
-
     this.backView  = new WorldView(config.back, this.height, this.near, this.far);
     this.leftView  = new WorldView(config.left, this.height, this.near, this.far);
     this.rightView = new WorldView(config.right, this.height, this.near, this.far);
@@ -119,27 +116,22 @@
     this.fixFOV(this.rightView);
 
     // Rotation
-    this.leftView.rotation.y  = this.alpha;
-    this.rightView.rotation.y = -this.alpha;
+    this.leftView.rotation.y  = (this.leftView.fovH * 0.5) + (this.backView.fovH * 0.5);
+    this.rightView.rotation.y  = -((this.rightView.fovH * 0.5) + (this.backView.fovH * 0.5));
+    this.leftView.planeRotation.y  = this.alpha;
+    this.rightView.planeRotation.y = -this.alpha;
 
     // Position
-    this.backView.origin = new THREE.Vector3(0, 0, -this.depth);
+    z = -this.depth;
+    this.backView.origin = new THREE.Vector3(0, 0, z);
 
     x = (-this.backView.width * 0.25) + (-this.front * 0.25);
     z = -this.depth * 0.5;
-    dirX = Math.sin(this.alpha) * this.depth;
-    dirZ = Math.cos(this.alpha) * this.depth;
-
-    this.leftView.origin   = new THREE.Vector3(x, 0, z);
-    this.leftView.position = new THREE.Vector3(x + dirX, 0, z + dirZ);
+    this.leftView.origin = new THREE.Vector3(x, 0, z);
 
     x = (this.backView.width * 0.25) + (this.front * 0.25);
     z = -this.depth * 0.5;
-    dirX = Math.sin(-this.alpha) * this.depth;
-    dirZ = Math.cos(-this.alpha) * this.depth;
-
-    this.rightView.origin   = new THREE.Vector3(x, 0, z);
-    this.rightView.position = new THREE.Vector3(x + dirX, 0, z + dirZ);
+    this.rightView.origin = new THREE.Vector3(x, 0, z);
 
     // Update
     this.backView.update(this);
@@ -148,14 +140,23 @@
   };
 
   World.prototype.fixFOV = function (view) {
-    view.fovH = Math.atan((view.width * 0.5) / this.depth) * 2.0;
+    var depth = this.depth * this.adjustZ;
+
+    view.fovH = Math.atan((view.width * 0.5) / depth) * 2.0;
     view.fovV = calculateVerticalFOV(view.aspect, view.fovH);
   };
 
   World.prototype.render = function () {
-    this.backView.render(this);
-    this.leftView.render(this);
-    this.rightView.render(this);
+    var keys = [ 'backView', 'leftView', 'rightView' ];
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      var view = this[key];
+
+      view.render(this);
+      if (view.material) {
+        view.material.map.needsUpdate = true;
+      }
+    }
   };
 
   global.World = World;

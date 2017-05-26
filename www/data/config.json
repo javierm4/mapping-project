@@ -1,7 +1,8 @@
 {
-  "cameraZ" : 200,
+  "cameraZ" : 30,
+  "adjustZ" : 1.0,
   "near"    : 10,
-  "far"     : 1000,
+  "far"     : 200,
   "front"   : 330.0,
   "back"    : 100.0,
   "left"    : 340.0,

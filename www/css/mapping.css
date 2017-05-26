@@ -1,0 +1,18 @@
+body {
+  margin: 0px;
+  overflow: hidden;
+  background: black;
+}
+
+.container {
+  position: relative;;
+  float: left;
+
+  margin: 10px;
+}
+
+.container > canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
