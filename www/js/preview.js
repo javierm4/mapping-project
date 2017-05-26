@@ -31,7 +31,7 @@
     container.appendChild(this.renderer.domElement);
 
     // Helpers
-    this.gridHelper = new THREE.GridHelper(100, 100);
+    this.gridHelper = new THREE.GridHelper(200, 200);
     this.world.scene.add(this.gridHelper);
 
     this.axisHelper = new THREE.AxisHelper();
@@ -87,65 +87,38 @@
     // Planes
     this.stagePlanes = new THREE.Object3D();
 
-    /*var keys = [ 'left', 'background', 'right' ];
+    var keys = [ 'backView', 'leftView', 'rightView' ];
     for (var i = 0; i < keys.length; i++) {
       var key = keys[i];
-      var capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-      var fnName = 'setup' + capitalizedKey + 'Plane';
+      var view = this.world[key];
 
-      var view = this.world.views[key];
-      this[fnName](view);
+      console.log(view);
+      this.addPlaneToView(view, this.world);
+      this.stagePlanes.add(view.plane);
     }
 
-    this.stagePlanes.position.y = this.world.views.left.height * 0.5 * STAGE_SCALE;
-    this.scene.add(this.stagePlanes);*/
+    this.scene.add(this.stagePlanes);
   };
 
-  /*Stage.prototype.setupBackgroundPlane = function (view) {
-    this.addPlaneToView(view);
-
-    view.planeGroup.position.z = -this.world.distanceBack * STAGE_SCALE;
-
-    this.stagePlanes.add(view.planeGroup);
-  };
-
-  Stage.prototype.setupLeftPlane = function (view) {
-    this.addPlaneToView(view);
-
-    view.plane.position.x = -view.width * 0.5 * STAGE_SCALE;
-
-    var w = this.world.views.background.width;
-    view.planeGroup.position.x = -w * 0.5 * STAGE_SCALE;
-    view.planeGroup.position.z = -world.distanceBack * STAGE_SCALE;
-    view.planeGroup.rotation.y = view.rotation;
-
-    this.stagePlanes.add(view.planeGroup);
-  };
-
-  Stage.prototype.setupRightPlane = function (view) {
-    this.addPlaneToView(view);
-
-    view.plane.position.x = view.width * 0.5 * STAGE_SCALE;
-
-    var w = this.world.views.background.width;
-    view.planeGroup.position.x = w * 0.5 * STAGE_SCALE;
-    view.planeGroup.position.z = -world.distanceBack * STAGE_SCALE;
-    view.planeGroup.rotation.y = view.rotation;
-
-    this.stagePlanes.add(view.planeGroup);
-  };
-
-  Stage.prototype.addPlaneToView = function (view) {
+  Stage.prototype.addPlaneToView = function (view, world) {
     var geometry = new THREE.PlaneGeometry(view.width * STAGE_SCALE, view.height * STAGE_SCALE);
     var material = new THREE.MeshBasicMaterial();
     material.map = new THREE.Texture(view.renderer.domElement);
     material.map.needsUpdate = true;
 
     view.plane = new THREE.Mesh(geometry, material);
+    view.plane.position.set(
+      view.origin.x * STAGE_SCALE,
+      view.origin.y * STAGE_SCALE,
+      view.origin.z * STAGE_SCALE
+    );
 
-    view.planeGroup = new THREE.Object3D();
-    view.planeGroup.add(view.plane);
-  };*/
+    view.plane.rotation.set(
+      view.rotation.x,
+      view.rotation.y,
+      view.rotation.z
+    );
+  };
 
   Stage.prototype.render = function () {
     this.renderer.render(this.scene, this.camera);
