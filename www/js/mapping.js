@@ -5,8 +5,9 @@
    * MAIN SCRIPT *
    ***************/
 
-   var world;
-   var app;
+  var SCALE = 1.72;
+  var world;
+  var app;
 
   function createWorld (onCreate) {
     $.ajax({
@@ -27,9 +28,10 @@
       var view = world[key];
 
       $('#' + key + '-container').css({
-        width  : view.width,
-        height : view.height
+        width  : view.width * SCALE,
+        height : view.height * SCALE
       });
+      view.renderer.setSize(view.width * SCALE, view.height * SCALE);
       $('#' + key + '-container').append(view.renderer.domElement);
     }
   }

@@ -8,8 +8,8 @@
   var Preview = function (world) {
     this.world = world;
 
-    var container = document.getElementById('preview-view');
-    var aspect = container.clientWidth / container.clientHeight;
+    this.container = document.getElementById('preview-view');
+    var aspect = this.container.clientWidth / this.container.clientHeight;
 
     // Camera
     this.camera = new THREE.PerspectiveCamera(50, aspect, 1, 20000);
@@ -19,7 +19,7 @@
     this.world.scene.add(this.camera);
 
     // Controls
-    this.controls = new THREE.TrackballControls(this.camera, container);
+    this.controls = new THREE.TrackballControls(this.camera, this.container);
     this.controls.noPan = true;
     this.controls.rotateSpeed = 0.6;
     this.controls.zoomSpeed = 1.0;
@@ -27,8 +27,8 @@
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setClearColor(0xffffff);
-    this.renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(this.renderer.domElement);
+    this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+    this.container.appendChild(this.renderer.domElement);
 
     // Helpers
     this.gridHelper = new THREE.GridHelper(200, 200);
@@ -47,6 +47,13 @@
     this.renderer.render(this.world.scene, this.camera);
   };
 
+  Preview.prototype.onWindowResize = function () {
+    this.camera.aspect = this.container.clientWidth / this.container.clientHeight;
+    this.camera.updateProjectionMatrix();
+
+    this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+  };
+
   /*********************
    * STAGE PROTOTYPE *
    *********************/
@@ -55,8 +62,8 @@
   var Stage = function (world) {
     this.world = world;
 
-    var container = document.getElementById('stage-view');
-    var aspect = container.clientWidth / container.clientHeight;
+    this.container = document.getElementById('stage-view');
+    var aspect = this.container.clientWidth / this.container.clientHeight;
 
     this.scene = new THREE.Scene();
 
@@ -66,7 +73,7 @@
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     // Controls
-    this.controls = new THREE.TrackballControls(this.camera, container);
+    this.controls = new THREE.TrackballControls(this.camera, this.container);
     this.controls.noPan = true;
     this.controls.rotateSpeed = 0.6;
     this.controls.zoomSpeed = 1.0;
@@ -74,8 +81,8 @@
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setClearColor(0x000000);
-    this.renderer.setSize(container.clientWidth, container.clientHeight);
-    container.appendChild(this.renderer.domElement);
+    this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+    this.container.appendChild(this.renderer.domElement);
 
     // Helpers
     var gridHelper = new THREE.GridHelper(10, 10);
@@ -125,6 +132,13 @@
     this.renderer.render(this.scene, this.camera);
   };
 
+  Stage.prototype.onWindowResize = function () {
+    this.camera.aspect = this.container.clientWidth / this.container.clientHeight;
+    this.camera.updateProjectionMatrix();
+
+    this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+  };
+
   /***************
    * MAIN SCRIPT *
    ***************/
@@ -171,20 +185,32 @@
      requestAnimationFrame(animate);
    }
 
+   function init () {
+     preview = new Preview(world);
+     if (hasStage) {
+       stage = new Stage(world);
+     }
+
+     app = new MappingApp(world);
+     app.setup();
+
+     window.addEventListener('resize', onWindowResize, false);
+   }
+
+   function onWindowResize () {
+     preview.onWindowResize();
+     if (hasStage) {
+       stage.onWindowResize();
+     }
+   }
+
    $(document).ready(function () {
      hasStage = $('#stage-view').length > 0;
 
      createWorld(function (_world) {
        world = _world;
 
-       preview = new Preview(world);
-       if (hasStage) {
-         stage = new Stage(world);
-       }
-
-       app = new MappingApp(world);
-       app.setup();
-
+       init();
        animate();
      });
    });

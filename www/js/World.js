@@ -43,6 +43,7 @@
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setClearColor(0xffffff);
+    this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(this.width, this.height);
   };
 
@@ -51,8 +52,6 @@
   };
 
   WorldView.prototype.update = function (world) {
-    var scale = world.near / world.depth;
-
     this.camera.fov = radToDeg(this.fovV);
     this.camera.rotation.set(this.rotation.x, this.rotation.y, this.rotation.z);
     this.camera.position.set(this.position.x, this.position.y, this.position.z);
@@ -64,6 +63,9 @@
   /*******************
    * WORLD PROTOTYPE *
    *******************/
+
+  var BACK_FOV_CORRECTION = 7;
+  var SIDE_ROTY_CORRECTION = 2;
 
   var World = function (config, debug) {
     this.debug   = debug;
@@ -101,12 +103,9 @@
   };
 
   World.prototype.fixViews = function () {
-    var adjacent;
-    var x, z;
-    var dirX, dirZ;
 
     // Find angles and depth
-    adjacent = (this.front - this.backView.width) * 0.5;
+    var adjacent = (this.front - this.backView.width) * 0.5;
     this.alpha = Math.acos(adjacent / this.leftView.width);
     this.depth = Math.sin(this.alpha) * this.leftView.width;
 
@@ -114,24 +113,25 @@
     this.fixFOV(this.backView);
     this.fixFOV(this.leftView);
     this.fixFOV(this.rightView);
+    this.backView.fovV -= degToRad(BACK_FOV_CORRECTION);
 
     // Rotation
-    this.leftView.rotation.y  = (this.leftView.fovH * 0.5) + (this.backView.fovH * 0.5);
-    this.rightView.rotation.y  = -((this.rightView.fovH * 0.5) + (this.backView.fovH * 0.5));
-    this.leftView.planeRotation.y  = this.alpha;
+    var rotY = (this.leftView.fovH * 0.5) + (this.backView.fovH * 0.5);
+    this.leftView.rotation.y = rotY - degToRad(SIDE_ROTY_CORRECTION);
+    this.leftView.planeRotation.y = this.alpha;
+
+    rotY = (this.rightView.fovH * 0.5) + (this.backView.fovH * 0.5);
+    this.rightView.rotation.y  = -rotY + degToRad(SIDE_ROTY_CORRECTION);
     this.rightView.planeRotation.y = -this.alpha;
 
-    // Position
-    z = -this.depth;
-    this.backView.origin = new THREE.Vector3(0, 0, z);
+    // Origin planes
+    this.backView.origin.z = -this.depth;
 
-    x = (-this.backView.width * 0.25) + (-this.front * 0.25);
-    z = -this.depth * 0.5;
-    this.leftView.origin = new THREE.Vector3(x, 0, z);
+    this.leftView.origin.x = (-this.backView.width * 0.25) + (-this.front * 0.25);
+    this.leftView.origin.z = -this.depth * 0.5;
 
-    x = (this.backView.width * 0.25) + (this.front * 0.25);
-    z = -this.depth * 0.5;
-    this.rightView.origin = new THREE.Vector3(x, 0, z);
+    this.rightView.origin.x = (this.backView.width * 0.25) + (this.front * 0.25);
+    this.rightView.origin.z = -this.depth * 0.5;
 
     // Update
     this.backView.update(this);
