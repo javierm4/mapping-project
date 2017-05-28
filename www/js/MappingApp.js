@@ -3,7 +3,7 @@
 
   var world;
 
-  var noof_balls = 10;
+  var noof_balls = 20;
   var balls;
 
   function setupBalls () {
@@ -45,9 +45,29 @@
       balls.add(mesh);
     }
 
-    balls.position.x = 300;
-    balls.position.z = -10;
+    balls.position.x = 200;
+    balls.position.z = -5;
     world.scene.add(balls);
+  }
+
+  function setupBoxes () {
+    var geometry = new THREE.BoxGeometry(100, 5, 5);
+    var material = new THREE.MeshNormalMaterial();
+
+    var box1 = new THREE.Mesh(geometry, material);
+    box1.position.z = -5;
+
+    var box2 = new THREE.Mesh(geometry, material);
+    box2.position.z = -5;
+    box2.rotation.z = Math.PI * 0.25;
+
+    var box3 = new THREE.Mesh(geometry, material);
+    box3.position.z = -5;
+    box3.rotation.z = -Math.PI * 0.25;
+
+    world.scene.add(box1);
+    world.scene.add(box2);
+    world.scene.add(box3);
   }
 
   var MappingApp = function (_world) {
@@ -56,15 +76,17 @@
 
   MappingApp.prototype.setup = function () {
     var light = new THREE.DirectionalLight(0xffffff);
-    light.position.set(0, 0, 1).normalize();
+    light.position.set(0, 10, 10);
     world.scene.add(light);
+
     setupBalls();
+    setupBoxes();
   };
 
   MappingApp.prototype.update = function () {
-    balls.position.x -= 4;
-    if (balls.position.x < -300) {
-      balls.position.x = 300;
+    balls.position.x -= 0.9;
+    if (balls.position.x < -200) {
+      balls.position.x = 200;
     }
   };
 
