@@ -1,12 +1,10 @@
+/* global THREE */
 (function (global) {
   'use strict';
 
   /*********
    * UTILS *
    *********/
-
-  var PI = Math.PI;
-  var HALF_PI = Math.PI * 0.5;
 
   function calculateVerticalFOV (aspect, hFOV) {
     return 2.0 * Math.atan(Math.tan(hFOV / 2.0) / aspect);
@@ -51,7 +49,7 @@
     this.renderer.render(world.scene, this.camera);
   };
 
-  WorldView.prototype.update = function (world) {
+  WorldView.prototype.update = function () {
     this.camera.fov = radToDeg(this.fovV);
     this.camera.rotation.set(this.rotation.x, this.rotation.y, this.rotation.z);
     this.camera.position.set(this.position.x, this.position.y, this.position.z);
@@ -68,18 +66,21 @@
   var SIDE_ROTY_CORRECTION = 2;
 
   var World = function (config, debug) {
-    this.debug   = debug;
-    this.front   = config.front;
-    this.cameraZ = config.cameraZ;
-    this.near    = config.near;
-    this.far     = config.far;
-    this.height  = config.height;
-    this.adjustZ = config.adjustZ;
+    this.debug    = debug;
+    this.front    = config.front;
+    this.cameraZ  = config.cameraZ;
+    this.near     = config.near;
+    this.far      = config.far;
+    this.height   = config.height;
+    this.adjustZ  = config.adjustZ;
+    this.mapScale = config.mapScale;
 
     this.scene = new THREE.Scene();
 
-    // Think of the virtual camera as a post with 5 cameras on it (even though those cameras happen to live in difference scenes)
-    // You need to move the post (ie, the virtualCamera) to move all 5 cameras together.
+    // Think of the virtual camera as a post with 5 cameras on it (even though
+    // those cameras happen to live in difference scenes)
+    // You need to move the post (ie, the virtualCamera) to move all 5 cameras
+    // together.
     this.virtualCamera = new THREE.Camera();
     this.virtualCamera.position.z = this.cameraZ;
     this.scene.add(this.virtualCamera);

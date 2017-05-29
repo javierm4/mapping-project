@@ -1,4 +1,5 @@
-(function (global) {
+/* global $, THREE, MappingApp, World */
+(function () {
   'use strict';
 
   /*********************

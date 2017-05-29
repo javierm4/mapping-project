@@ -1,11 +1,11 @@
-(function (global) {
+/* global $, MappingApp, World */
+(function () {
   'use strict';
 
   /***************
    * MAIN SCRIPT *
    ***************/
 
-  var SCALE = 1.72;
   var world;
   var app;
 
@@ -28,10 +28,10 @@
       var view = world[key];
 
       $('#' + key + '-container').css({
-        width  : view.width * SCALE,
-        height : view.height * SCALE
+        width  : view.width * world.mapScale,
+        height : view.height * world.mapScale
       });
-      view.renderer.setSize(view.width * SCALE, view.height * SCALE);
+      view.renderer.setSize(view.width * world.mapScale, view.height * world.mapScale);
       $('#' + key + '-container').append(view.renderer.domElement);
     }
   }
@@ -54,5 +54,4 @@
       animate();
     });
   });
-
-})(window);
+})();
