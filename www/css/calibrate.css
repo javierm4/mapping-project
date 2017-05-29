@@ -10,8 +10,14 @@ body {
   margin: 3px;
 }
 
-.container > canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
+#leftView-container {
+  background: red;
+}
+
+#backView-container {
+  background: green;
+}
+
+#rightView-container {
+  background: blue;
 }

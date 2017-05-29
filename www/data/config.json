@@ -1,11 +1,12 @@
 {
-  "cameraZ" : 30,
-  "adjustZ" : 0.75,
-  "near"    : 10,
-  "far"     : 200,
-  "front"   : 330.0,
-  "back"    : 100.0,
-  "left"    : 340.0,
-  "right"   : 340.0,
-  "height"  : 200.0
+  "cameraZ"  : 30,
+  "adjustZ"  : 0.75,
+  "near"     : 10,
+  "mapScale" : 2,
+  "far"      : 2000,
+  "front"    : 330.0,
+  "back"     : 100.0,
+  "left"     : 340.0,
+  "right"    : 340.0,
+  "height"   : 200.0
 }
