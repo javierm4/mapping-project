@@ -152,9 +152,9 @@
 
    function toggleHelpers() {
      preview.toggleHelpers();
-     world.backView.helper.visible = !world.backView.helper.visible;
-     world.leftView.helper.visible = !world.leftView.helper.visible;
-     world.rightView.helper.visible = !world.rightView.helper.visible;
+     //world.backView.helper.visible = !world.backView.helper.visible;
+     //world.leftView.helper.visible = !world.leftView.helper.visible;
+     //world.rightView.helper.visible = !world.rightView.helper.visible;
    }
 
    function createWorld (onCreate) {

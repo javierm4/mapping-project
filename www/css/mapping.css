@@ -7,7 +7,7 @@ body {
 .container {
   position: relative;;
   float: left;
-  margin: 3px;
+  margin: 0px;
 }
 
 .container > canvas {
