@@ -90,6 +90,7 @@
     // together.
     this.virtualCamera = new THREE.Camera();
     this.virtualCamera.position.z = this.cameraZ;
+    this.virtualCamera.lookAt(this.scene.position);
     this.scene.add(this.virtualCamera);
 
     // Views
@@ -119,7 +120,7 @@
     // Calculate origin
     var hypoFront = halfSide / Math.cos(this.alpha);
     var originZ = Math.tan(PI - this.alpha - HALF_PI) * (hypoFront - halfFront);
-    var origin = new THREE.Vector3(0, 0, -originZ);
+    this.originCameras = new THREE.Vector3(0, 0, -originZ);
 
     // Calculate corners
     this.corners = [
@@ -137,7 +138,7 @@
       scale    : config.camScale,
       init     : this.corners[0],
       end      : this.corners[3],
-      origin   : origin,
+      origin   : this.originCameras,
       rotation : new THREE.Vector3(0, this.alpha, 0)
     });
 
@@ -148,7 +149,7 @@
       scale    : config.camScale,
       init     : this.corners[1],
       end      : this.corners[2],
-      origin   : origin,
+      origin   : this.originCameras,
       rotation : new THREE.Vector3(0, -this.alpha, 0)
     });
 
@@ -160,7 +161,7 @@
       scale    : config.camScale,
       init     : this.corners[0],
       end      : this.corners[1],
-      origin   : origin,
+      origin   : this.originCameras,
       rotation : new THREE.Vector3(0, 0, 0)
     });
   };

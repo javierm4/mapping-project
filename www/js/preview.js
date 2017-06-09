@@ -23,7 +23,7 @@
     this.controls = new THREE.TrackballControls(this.camera, this.container);
     this.controls.noPan = true;
     this.controls.rotateSpeed = 0.6;
-    this.controls.zoomSpeed = 1.0;
+    this.controls.zoomSpeed = 0.7;
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -70,14 +70,16 @@
 
     // Camera
     this.camera = new THREE.PerspectiveCamera(50, aspect, 1, 1000);
-    this.camera.position.set(0, 1, 15);
-    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+    this.camera.position.y = world.height * STAGE_SCALE * 0.5;
 
     // Controls
     this.controls = new THREE.TrackballControls(this.camera, this.container);
     this.controls.noPan = true;
     this.controls.rotateSpeed = 0.6;
-    this.controls.zoomSpeed = 1.0;
+    this.controls.zoomSpeed = 0.7;
+    this.controls.staticMoving = true;
+    this.controls.dynamicDampingFactor = 0.3;
+    this.controls.target = world.originCameras;
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
