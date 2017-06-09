@@ -1,3 +1,4 @@
+/* global THREE */
 (function (global) {
   'use strict';
 
@@ -13,7 +14,8 @@
     radius = 5,
     geometry1 = new THREE.IcosahedronGeometry( radius, 1 );
 
-    for (var i = 0; i < geometry1.faces.length; i++) {
+    var i = 0;
+    for (i = 0; i < geometry1.faces.length; i++) {
       f1 = geometry1.faces[ i ];
 
       for (var j = 0; j < 3; j++) {
@@ -32,12 +34,21 @@
     }
 
     var materials = [
-      new THREE.MeshPhongMaterial( { color: 0xffffff, shading: THREE.FlatShading, vertexColors: THREE.VertexColors, shininess: 0 } ),
-      new THREE.MeshBasicMaterial( { color: 0x000000, shading: THREE.FlatShading, wireframe: true } )
+      new THREE.MeshPhongMaterial({
+        color        : 0xffffff,
+        shading      : THREE.FlatShading,
+        vertexColors : THREE.VertexColors,
+        shininess    : 0
+      }),
+      new THREE.MeshBasicMaterial({
+        color     : 0x000000,
+        shading   : THREE.FlatShading,
+        wireframe : true
+      })
     ];
 
     balls = new THREE.Object3D();
-    for ( var i = 0; i < noofBalls; i ++ ) { // create balls
+    for (i = 0; i < noofBalls; i++) { // create balls
       var mesh = THREE.SceneUtils.createMultiMaterialObject( geometry1, materials );
 
       mesh.position.x = - ( noofBalls - 1 ) / 2 *7 + i *7;
@@ -45,8 +56,8 @@
       balls.add(mesh);
     }
 
-    //balls.position.x = 100;
-    balls.position.z = -50;
+    balls.position.x = 100;
+    balls.position.z = -75;
     world.scene.add(balls);
   }
 
@@ -55,19 +66,19 @@
     var material = new THREE.MeshNormalMaterial();
 
     var box1 = new THREE.Mesh(geometry, material);
-    box1.position.z = -50;
+    box1.position.z = -100;
 
     var box2 = new THREE.Mesh(geometry, material);
-    box2.position.z = -50;
+    box2.position.z = -100;
     box2.rotation.z = Math.PI * 0.25;
 
     var box3 = new THREE.Mesh(geometry, material);
-    box3.position.z = -50;
+    box3.position.z = -100;
     box3.rotation.z = Math.PI * -0.25;
 
     world.scene.add(box1);
-    //world.scene.add(box2);
-    //world.scene.add(box3);
+    world.scene.add(box2);
+    world.scene.add(box3);
   }
 
   var MappingApp = function (_world) {
@@ -79,11 +90,15 @@
     light.position.set(0, 0, 1).normalize();
     world.scene.add(light);
 
-    //setupBalls();
+    setupBalls();
     setupBoxes();
   };
 
   MappingApp.prototype.update = function () {
+    balls.position.x -= 1;
+    if (balls.position.x < -100) {
+      balls.position.x = 100;
+    }
   };
 
   global.MappingApp = MappingApp;

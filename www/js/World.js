@@ -6,6 +6,14 @@
    * UTILS *
    *********/
 
+  var PI = Math.PI;
+  var HALF_PI = Math.PI * 0.5;
+
+  function calculateHorizontalFOV (view) {
+    var halfSide = view.width * 0.5;
+    return Math.atan(halfSide / view.near) * 2.0;
+  }
+
   function calculateVerticalFOV (aspect, hFOV) {
     return 2.0 * Math.atan(Math.tan(hFOV / 2.0) / aspect);
   }
@@ -14,27 +22,42 @@
     return r * (180.0 / Math.PI);
   }
 
-  function degToRad (d) {
-    return d * (Math.PI / 180.0);
-  }
-
   /************************
    * WORLD VIEW PROTOTYPE *
    ************************/
 
-  var WorldView = function (width, height) {
-    this.width  = width;
-    this.height = height;
+  var WorldView = function (config) {
+    this.width  = config.width;
+    this.height = config.height;
     this.aspect = this.width / this.height;
 
-    /*this.rotation = new THREE.Vector3(0, 0, 0);
-    this.origin   = new THREE.Vector3(0, 0, 0);
-    this.position = new THREE.Vector3(0, 0, 0);
+    this.center = new THREE.Vector3();
+    this.center.addVectors(config.init, config.end);
+    this.center.multiplyScalar(0.5);
 
-    this.planeRotation = new THREE.Vector3(0, 0, 0);
+    this.origin   = config.origin;
+    this.rotation = config.rotation;
 
-    this.camera = new THREE.PerspectiveCamera(50.0, this.aspect, near, far);
+    // Camera group
     this.cameraGroup = new THREE.Object3D();
+    this.cameraGroup.position.x = this.origin.x * config.scale;
+    this.cameraGroup.position.y = this.origin.y * config.scale;
+    this.cameraGroup.position.z = this.origin.z * config.scale;
+
+    // Camera
+    this.near = this.center.distanceTo(this.origin);
+    this.fovH = calculateHorizontalFOV(this);
+    this.fovV = calculateVerticalFOV(this.aspect, this.fovH);
+
+    this.camera = new THREE.PerspectiveCamera(
+      radToDeg(this.fovV),
+      this.aspect,
+      this.near * config.scale,
+      config.far
+    );
+    this.camera.rotation.x = this.rotation.x;
+    this.camera.rotation.y = this.rotation.y;
+    this.camera.rotation.z = this.rotation.z;
     this.cameraGroup.add(this.camera);
 
     this.helper = new THREE.CameraHelper(this.camera);
@@ -42,32 +65,22 @@
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setClearColor(0xffffff);
     this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(this.width, this.height);*/
+    this.renderer.setSize(this.width, this.height);
   };
 
   WorldView.prototype.render = function (world) {
-    //this.renderer.render(world.scene, this.camera);
-  };
-
-  WorldView.prototype.update = function () {
-    /*this.camera.fov = radToDeg(this.fovV);
-    this.camera.rotation.set(this.rotation.x, this.rotation.y, this.rotation.z);
-    this.camera.position.set(this.position.x, this.position.y, this.position.z);
-
-    this.camera.updateProjectionMatrix();
-    this.helper.update();*/
+    this.renderer.render(world.scene, this.camera);
   };
 
   /*******************
    * WORLD PROTOTYPE *
    *******************/
 
-  var BACK_FOV_CORRECTION = 0;
-  var SIDE_ROTY_CORRECTION = 0;
-
   var World = function (config, debug) {
-    this.debug  = debug;
-    this.height = config.height;
+    this.debug    = debug;
+    this.height   = config.height;
+    this.cameraZ  = config.cameraZ;
+    this.mapScale = config.mapScale;
 
     this.scene = new THREE.Scene();
 
@@ -76,64 +89,96 @@
     // You need to move the post (ie, the virtualCamera) to move all 5 cameras
     // together.
     this.virtualCamera = new THREE.Camera();
-    //this.virtualCamera.position.z = this.cameraZ;
-    this.virtualCamera.position.z = 0;
+    this.virtualCamera.position.z = this.cameraZ;
     this.scene.add(this.virtualCamera);
 
     // Views
     this.createViews(config);
 
-    //this.virtualCamera.add(this.backView.cameraGroup);
-    //this.virtualCamera.add(this.leftView.cameraGroup);
-    //this.virtualCamera.add(this.rightView.cameraGroup);
+    this.virtualCamera.add(this.leftView.cameraGroup);
+    this.virtualCamera.add(this.backView.cameraGroup);
+    this.virtualCamera.add(this.rightView.cameraGroup);
 
     if (this.debug) {
-      //this.scene.add(this.backView.helper);
-      //this.scene.add(this.leftView.helper);
-      //this.scene.add(this.rightView.helper);
+      this.scene.add(this.leftView.helper);
+      this.scene.add(this.backView.helper);
+      this.scene.add(this.rightView.helper);
     }
-
-    console.log(this.backView);
   };
 
   World.prototype.createViews = function (config) {
 
+    var halfFront = config.frontSize * 0.5;
+    var halfBack  = config.backSize * 0.5;
+    var halfSide  = config.sideSize * 0.5;
+
     // Calculate angle and depth
-    var adjacent = (config.frontSize - config.backSize) * 0.5;
-    this.alpha = Math.acos(adjacent / config.sideSize);
+    this.alpha = Math.acos((halfFront - halfBack) / config.sideSize);
     this.depth = Math.sin(this.alpha) * config.sideSize;
 
     // Calculate origin
-    var sideFar = (config.sideSize * 0.5) / Math.cos(this.alpha);
-    console.log(sideFar);
-    console.log(this.depth);
+    var hypoFront = halfSide / Math.cos(this.alpha);
+    var originZ = Math.tan(PI - this.alpha - HALF_PI) * (hypoFront - halfFront);
+    var origin = new THREE.Vector3(0, 0, -originZ);
 
-    /*this.backView  = new WorldView(config.backSize, this.height);
-    this.leftView  = new WorldView(config.sideSize, this.height);
-    this.rightView = new WorldView(config.sideSize, this.height);*/
-  };
+    // Calculate corners
+    this.corners = [
+      new THREE.Vector3(-halfBack, 0, -this.depth),
+      new THREE.Vector3(halfBack, 0, -this.depth),
+      new THREE.Vector3(halfFront, 0, 0),
+      new THREE.Vector3(-halfFront, 0, 0)
+    ];
 
-  World.prototype.fixViews = function () {
-  };
+    // Create left and right view
+    this.leftView = new WorldView({
+      width    : config.sideSize,
+      height   : this.height,
+      far      : config.far,
+      scale    : config.camScale,
+      init     : this.corners[0],
+      end      : this.corners[3],
+      origin   : origin,
+      rotation : new THREE.Vector3(0, this.alpha, 0)
+    });
 
-  World.prototype.fixFOV = function (view) {
-    var depth = this.depth * this.adjustZ;
+    this.rightView = new WorldView({
+      width    : config.sideSize,
+      height   : this.height,
+      far      : config.far,
+      scale    : config.camScale,
+      init     : this.corners[1],
+      end      : this.corners[2],
+      origin   : origin,
+      rotation : new THREE.Vector3(0, -this.alpha, 0)
+    });
 
-    view.fovH = Math.atan((view.width * 0.5) / depth) * 2.0;
-    view.fovV = calculateVerticalFOV(view.aspect, view.fovH);
+    // Create back view
+    this.backView = new WorldView({
+      width    : config.backSize,
+      height   : this.height,
+      far      : config.far,
+      scale    : config.camScale,
+      init     : this.corners[0],
+      end      : this.corners[1],
+      origin   : origin,
+      rotation : new THREE.Vector3(0, 0, 0)
+    });
   };
 
   World.prototype.render = function () {
-    /*var keys = [ 'backView', 'leftView', 'rightView' ];
+
+    var keys = [ 'backView', 'leftView', 'rightView' ];
     for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      var view = this[key];
+      var view = this[keys[i]];
+      if (!view) {
+        continue;
+      }
 
       view.render(this);
       if (view.material) {
         view.material.map.needsUpdate = true;
       }
-    }*/
+    }
   };
 
   global.World = World;

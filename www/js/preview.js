@@ -97,8 +97,10 @@
 
     var keys = [ 'backView', 'leftView', 'rightView' ];
     for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      var view = this.world[key];
+      var view = this.world[keys[i]];
+      if (!view) {
+        continue;
+      }
 
       this.addPlaneToView(view, this.world);
       this.stagePlanes.add(view.plane);
@@ -117,15 +119,15 @@
 
     view.plane = new THREE.Mesh(geometry, view.material);
     view.plane.position.set(
-      view.origin.x * STAGE_SCALE,
-      view.origin.y * STAGE_SCALE,
-      view.origin.z * STAGE_SCALE
+      view.center.x * STAGE_SCALE,
+      view.center.y * STAGE_SCALE,
+      view.center.z * STAGE_SCALE
     );
 
     view.plane.rotation.set(
-      view.planeRotation.x,
-      view.planeRotation.y,
-      view.planeRotation.z
+      view.rotation.x,
+      view.rotation.y,
+      view.rotation.z
     );
   };
 
@@ -152,9 +154,9 @@
 
    function toggleHelpers() {
      preview.toggleHelpers();
-     //world.backView.helper.visible = !world.backView.helper.visible;
-     //world.leftView.helper.visible = !world.leftView.helper.visible;
-     //world.rightView.helper.visible = !world.rightView.helper.visible;
+     world.backView.helper.visible = !world.backView.helper.visible;
+     world.leftView.helper.visible = !world.leftView.helper.visible;
+     world.rightView.helper.visible = !world.rightView.helper.visible;
    }
 
    function createWorld (onCreate) {
@@ -215,5 +217,4 @@
        animate();
      });
    });
-
 })(window);

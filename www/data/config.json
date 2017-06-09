@@ -2,5 +2,9 @@
   "backSize"  : 94.0,
   "frontSize" : 310.0,
   "sideSize"  : 340.0,
-  "height"    : 200.0
+  "height"    : 200.0,
+  "mapScale"  : 2.0,
+  "camScale"  : 0.09,
+  "cameraZ"   : -10.0,
+  "far"       : 2000.0
 }
