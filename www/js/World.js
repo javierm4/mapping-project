@@ -63,7 +63,7 @@
     this.helper = new THREE.CameraHelper(this.camera);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setClearColor(0xffffff);
+    this.renderer.setClearColor(0x0000ff);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(this.width, this.height);
   };

@@ -3,102 +3,106 @@
   'use strict';
 
   var world;
+  var flock;
 
-  var noofBalls = 15;
-  var balls;
+  var sharks = {};
 
-  function setupBalls () {
-    var faceIndices = [ 'a', 'b', 'c' ];
-    var color, f1, p, vertexIndex,
+  /*******************
+   * WebSocket logic *
+   *******************/
 
-    radius = 5,
-    geometry1 = new THREE.IcosahedronGeometry( radius, 1 );
+  // WebSocket
+  var wsURL = 'ws://172.20.10.7:1881';
+  var connection;
 
-    var i = 0;
-    for (i = 0; i < geometry1.faces.length; i++) {
-      f1 = geometry1.faces[ i ];
+  function setupWebSocket () {
+    window.WebSocket = window.WebSocket || window.MozWebSocket;
 
-      for (var j = 0; j < 3; j++) {
-        vertexIndex = f1[ faceIndices[ j ] ];
+    connection = new WebSocket (wsURL);
 
-        p = geometry1.vertices[ vertexIndex ];
-
-        color = new THREE.Color( 0xffffff );
-        color.setHSL( ( p.y / radius + 1 ) / 2, 1.0, 0.5 );
-
-        f1.vertexColors[ j ] = color;
-
-        color = new THREE.Color( 0xffffff );
-        color.setHSL( 0.0, ( p.y / radius + 1 ) / 2, 0.5 );
-      }
-    }
-
-    var materials = [
-      new THREE.MeshPhongMaterial({
-        color        : 0xffffff,
-        shading      : THREE.FlatShading,
-        vertexColors : THREE.VertexColors,
-        shininess    : 0
-      }),
-      new THREE.MeshBasicMaterial({
-        color     : 0x000000,
-        shading   : THREE.FlatShading,
-        wireframe : true
-      })
-    ];
-
-    balls = new THREE.Object3D();
-    for (i = 0; i < noofBalls; i++) { // create balls
-      var mesh = THREE.SceneUtils.createMultiMaterialObject( geometry1, materials );
-
-      mesh.position.x = - ( noofBalls - 1 ) / 2 *7 + i *7;
-      mesh.rotation.x = i * 0.5;
-      balls.add(mesh);
-    }
-
-    balls.position.x = 100;
-    balls.position.z = -75;
-    world.scene.add(balls);
+    connection.onopen    = onConnectionOpen;
+    connection.onerror   = onConnectionError;
+    connection.onmessage = onConnectionMessage;
   }
 
-  function setupBoxes () {
-    var geometry = new THREE.BoxGeometry(90, 6, 6);
+  function onConnectionOpen () {
+    console.log('Connected with server!');
+
+    var message = {
+      type : 'register',
+      data : 'output'
+    };
+    connection.send(JSON.stringify(message));
+  }
+
+  function onConnectionError () {
+    console.log('Error in connection :(!');
+  }
+
+  function onConnectionMessage (event) {
+    var payload = event.data;
+    var message = JSON.parse(payload);
+    console.log(message);
+
+    var type = message.type;
+    var data = message.data;
+
+    if (type === 'newInput') {
+      createNewMesh(data);
+    }
+    else if (type === 'angles'){
+      onAngleRecieved(data.from, data.angles)
+    }
+    else if (type === 'disconnected') {
+      onClientDisctonnected(data);
+    }
+  }
+
+  function createNewMesh (idConnection) {
+    var geom = new THREE.BoxGeometry(3, 3, 3);
     var material = new THREE.MeshNormalMaterial();
 
-    var box1 = new THREE.Mesh(geometry, material);
-    box1.position.z = -100;
+    var mesh = new THREE.Mesh(geom, material);
+    mesh.position.z = -5;
+    mesh.position.x = (Math.random() * 10) - 5;
+    mesh.position.y = (Math.random() * 10) - 5;
 
-    var box2 = new THREE.Mesh(geometry, material);
-    box2.position.z = -100;
-    box2.rotation.z = Math.PI * 0.25;
-
-    var box3 = new THREE.Mesh(geometry, material);
-    box3.position.z = -100;
-    box3.rotation.z = Math.PI * -0.25;
-
-    world.scene.add(box1);
-    world.scene.add(box2);
-    world.scene.add(box3);
+    world.scene.add(mesh);
+    sharks[idConnection] = mesh;
   }
+
+  function onAngleRecieved (from, angles) {
+    var mesh = sharks[from];
+    if (mesh) {
+      mesh.rotation.x = angles.alpha * (Math.PI / 180) * -1;
+      mesh.rotation.y = angles.beta * (Math.PI / 180) * -1;
+      mesh.rotation.z = angles.gamma * (Math.PI / 180) * -1;
+    }
+  }
+
+  function onClientDisctonnected (from) {
+    var mesh = sharks[from];
+    if (mesh) {
+      world.scene.remove(mesh);
+      delete sharks[data];
+    }
+  }
+
+  /********************
+   * MappingApp logic *
+   ********************/
 
   var MappingApp = function (_world) {
     world = _world;
   };
 
   MappingApp.prototype.setup = function () {
-    var light = new THREE.DirectionalLight(0xffffff);
-    light.position.set(0, 0, 1).normalize();
-    world.scene.add(light);
-
-    setupBalls();
-    setupBoxes();
+    flock = new Flock(world);
+    setupWebSocket();
   };
 
   MappingApp.prototype.update = function () {
-    balls.position.x -= 1;
-    if (balls.position.x < -100) {
-      balls.position.x = 100;
-    }
+    flock.update();
   };
 
   global.MappingApp = MappingApp;
