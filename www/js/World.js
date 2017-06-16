@@ -42,7 +42,7 @@
     this.cameraGroup = new THREE.Object3D();
     this.cameraGroup.position.x = this.origin.x * config.scale;
     this.cameraGroup.position.y = this.origin.y * config.scale;
-    this.cameraGroup.position.z = this.origin.z * config.scale;
+    this.cameraGroup.position.z = this.origin.z * config.scale + 90;
 
     // Camera
     this.near = this.center.distanceTo(this.origin);
@@ -63,7 +63,7 @@
     this.helper = new THREE.CameraHelper(this.camera);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
-    this.renderer.setClearColor(0x0000ff);
+    this.renderer.setClearColor(0x022238);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(this.width, this.height);
   };

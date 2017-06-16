@@ -59,8 +59,8 @@
   }
 
   function createNewMesh (idConnection) {
-    var geom = new THREE.BoxGeometry(3, 3, 3);
-    var material = new THREE.MeshNormalMaterial();
+    /*var geom = new THREE.BoxGeometry(3, 3, 3);*/
+    /*var material = new THREE.MeshNormalMaterial();
 
     var mesh = new THREE.Mesh(geom, material);
     mesh.position.z = -5;
@@ -68,22 +68,44 @@
     mesh.position.y = (Math.random() * 10) - 5;
 
     world.scene.add(mesh);
-    sharks[idConnection] = mesh;
+    */
+    
+
+    var geom2 = new THREE.PlaneGeometry(60, 30, 2, 1 );
+
+    var material2 = new THREE.MeshBasicMaterial({
+      map           :   THREE.ImageUtils.loadTexture('textures/shark-texture.png'),
+      side          :   THREE.DoubleSide,
+      transparent   :   true
+    });
+
+    var Smesh = new THREE.Mesh(geom2, material2)
+
+    Smesh.position.z = -5;
+    Smesh.position.x = (Math.random() * 10) - 5;
+    Smesh.position.y = (Math.random() * 10) - 5;
+
+
+
+    world.scene.add(Smesh);
+    
+
+    sharks[idConnection] = Smesh;
   }
 
   function onAngleRecieved (from, angles) {
-    var mesh = sharks[from];
-    if (mesh) {
-      mesh.rotation.x = angles.alpha * (Math.PI / 180) * -1;
-      mesh.rotation.y = angles.beta * (Math.PI / 180) * -1;
-      mesh.rotation.z = angles.gamma * (Math.PI / 180) * -1;
+    var Smesh = sharks[from];
+    if (Smesh) {
+      Smesh.rotation.x = angles.gamma * (Math.PI / 180) * -1;
+      Smesh.rotation.y = angles.beta * (Math.PI / 180);
+      Smesh.rotation.z = angles.alpha * (Math.PI / 180);
     }
   }
 
   function onClientDisctonnected (from) {
-    var mesh = sharks[from];
-    if (mesh) {
-      world.scene.remove(mesh);
+    var Smesh = sharks[from];
+    if (Smesh) {
+      world.scene.remove(Smesh);
       delete sharks[data];
     }
   }
